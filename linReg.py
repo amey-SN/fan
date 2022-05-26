@@ -1,31 +1,54 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import tensorflow as tf
-observations=1000
-xs=np.random.uniform(-10,10,(observations,1))
-zs=np.random.uniform(-10,10,(observations,1))
-generated_inputs=np.column_stack((xs,zs))
-noise=np.random.uniform(-10,10,(observations,1))
-generated_target=2*xs-3*zs+5+noise
-np.savez('TF_intro',input=generated_inputs,targets=generated_target)
-training_data=np.load('TF_intro.npz')
-input_size=2
-output_size=1
-models = tf.keras.Sequential([
-tf.keras.layers.Dense(output_size)
-])
-custom_optimizer=tf.keras.optimizers.SGD(learning_rate=0.02)
-models.compile(optimizer=custom_optimizer,loss='mean_squared_error')
-models.fit(training_data['input'],training_data['targets'],epochs=100,verbose=1)
-models.layers[0].get_weights()
-#[array([[ 1.3665189],[-3.1609795]], dtype=float32), array([4.9344487], dtype=float32)]
-weights=models.layers[0].get_weights()[0]
-bias=models.layers[0].get_weights()[1]
-out=training_data['targets'].round(1)
-from sklearn.metrics import mean_squared_error
-mean_squared_error(generated_target, out, squared = False)
-plt.scatter(np.squeeze(models.predict_on_batch(training_data['input'])),np.squeeze(training_data
-['targets']),c='#88c999')
-plt.xlabel('Input')
-plt.ylabel('Predicted Output')
-plt.show()
+  
+def estimate_coef(x, y):
+    # number of observations/points
+    n = np.size(x)
+  
+    # mean of x and y vector
+    m_x = np.mean(x)
+    m_y = np.mean(y)
+  
+    # calculating cross-deviation and deviation about x
+    SS_xy = np.sum(y*x) - n*m_y*m_x
+    SS_xx = np.sum(x*x) - n*m_x*m_x
+  
+    # calculating regression coefficients
+    b_1 = SS_xy / SS_xx
+    b_0 = m_y - b_1*m_x
+  
+    return (b_0, b_1)
+  
+def plot_regression_line(x, y, b):
+    # plotting the actual points as scatter plot
+    plt.scatter(x, y, color = "m",
+               marker = "o", s = 30)
+  
+    # predicted response vector
+    y_pred = b[0] + b[1]*x
+  
+    # plotting the regression line
+    plt.plot(x, y_pred, color = "g")
+  
+    # putting labels
+    plt.xlabel('x')
+    plt.ylabel('y')
+  
+    # function to show plot
+    plt.show()
+  
+def main():
+    # observations / data
+    x = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    y = np.array([1, 3, 2, 5, 7, 8, 8, 9, 10, 12])
+  
+    # estimating coefficients
+    b = estimate_coef(x, y)
+    print("Estimated coefficients:\nb_0 = {}  \
+          \nb_1 = {}".format(b[0], b[1]))
+  
+    # plotting regression line
+    plot_regression_line(x, y, b)
+  
+if __name__ == "__main__":
+    main()
